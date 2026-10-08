@@ -1,0 +1,16 @@
+[mcp_servers.godot]
+command = "npx"
+args = ["-y", "@coding-solo/godot-mcp"]
+env = { GODOT_PATH = "/usr/bin/godot" }
+
+[mcp_servers.godot.tools.get_godot_version]
+approval_mode = "approve"
+
+[mcp_servers.godot.tools.get_uid]
+approval_mode = "approve"
+
+[mcp_servers.godot.tools.get_project_info]
+approval_mode = "approve"
+
+[mcp_servers.godot.tools.save_scene]
+approval_mode = "approve"
