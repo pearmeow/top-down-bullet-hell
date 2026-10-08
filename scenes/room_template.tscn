@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bx0oaxocvfdgl"]
 
-[ext_resource type="TileSet" path="res://assets/tileset/room_tileset.tres" id="1_2lsvk"]
+[ext_resource type="TileSet" uid="uid://4yeremxwe5aj" path="res://assets/tileset/room_tileset.tres" id="1_2lsvk"]
 
 [node name="Room" type="Node2D" unique_id=1846544674]
 texture_filter = 1
