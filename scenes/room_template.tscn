@@ -1036,6 +1036,15 @@ sources/0 = SubResource("TileSetAtlasSource_nqrut")
 [node name="Room" type="Node2D" unique_id=1846544674]
 texture_filter = 1
 
+[node name="Floors" type="TileMapLayer" parent="." unique_id=1332210914]
+tile_set = SubResource("TileSet_vf6dh")
+
+[node name="Extras" type="TileMapLayer" parent="." unique_id=1224343505]
+tile_set = SubResource("TileSet_vf6dh")
+
+[node name="Walls" type="TileMapLayer" parent="." unique_id=1177966791]
+tile_set = SubResource("TileSet_vf6dh")
+
 [node name="Structures" type="TileMapLayer" parent="." unique_id=1988143338]
 z_index = 1
 tile_set = ExtResource("1_2lsvk")
@@ -1043,12 +1052,3 @@ tile_set = ExtResource("1_2lsvk")
 [node name="Decorations" type="TileMapLayer" parent="." unique_id=1489831537]
 z_index = 2
 tile_set = ExtResource("1_2lsvk")
-
-[node name="Floors" type="TileMapLayer" parent="." unique_id=1332210914]
-tile_set = SubResource("TileSet_vf6dh")
-
-[node name="Walls" type="TileMapLayer" parent="." unique_id=1177966791]
-tile_set = SubResource("TileSet_vf6dh")
-
-[node name="Extras" type="TileMapLayer" parent="." unique_id=1224343505]
-tile_set = SubResource("TileSet_vf6dh")

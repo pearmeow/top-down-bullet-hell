@@ -299,6 +299,9 @@ texture = ExtResource("2_ylbre")
 47:24/size_in_atlas = Vector2i(4, 3)
 47:24/0 = 0
 47:24/0/z_index = 2
+42:0/size_in_atlas = Vector2i(17, 10)
+42:0/0 = 0
+42:0/0/z_index = 2
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_nhneu"]
 resource_name = "Decorations"
