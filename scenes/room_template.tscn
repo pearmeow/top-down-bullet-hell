@@ -1042,6 +1042,10 @@ tile_set = SubResource("TileSet_vf6dh")
 [node name="Pits" type="TileMapLayer" parent="." unique_id=493125494]
 tile_set = SubResource("TileSet_vf6dh")
 
+[node name="Spikes" type="TileMapLayer" parent="." unique_id=301037339]
+z_index = 2
+tile_set = ExtResource("1_2lsvk")
+
 [node name="Extras" type="TileMapLayer" parent="." unique_id=1224343505]
 tile_set = SubResource("TileSet_vf6dh")
 
