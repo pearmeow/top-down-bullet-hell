@@ -1055,3 +1055,7 @@ tile_set = ExtResource("1_2lsvk")
 [node name="Decorations" type="TileMapLayer" parent="." unique_id=1489831537]
 z_index = 2
 tile_set = ExtResource("1_2lsvk")
+
+[node name="Lights" type="TileMapLayer" parent="." unique_id=453125442]
+z_index = 2
+tile_set = ExtResource("1_2lsvk")
