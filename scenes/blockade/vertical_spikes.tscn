@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://c4iqxudvbpqdn"]
+
+[ext_resource type="PackedScene" uid="uid://cb1sd42nw20tm" path="res://scenes/blockade/horizontal_spikes.tscn" id="1_s4g3p"]
+
+[node name="Room" unique_id=1846544674 instance=ExtResource("1_s4g3p")]
+
+[node name="WallSpikes" parent="." index="4" unique_id=1862828664]
+tile_map_data = PackedByteArray(0, 0, 255, 255, 255, 255, 3, 0, 0, 0, 3, 0, 0, 0, 255, 255, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 255, 255, 1, 0, 3, 0, 0, 0, 3, 0, 0, 0, 255, 255, 254, 255, 3, 0, 0, 0, 3, 0, 0, 0)
