@@ -1,7 +1,7 @@
 extends Node2D
 
-## Change this in the main scene inspector to reproduce a different layout.
-@export var level_seed: int = 12345
+## -1 chooses a new seed on every launch; set a seed to replay a layout.
+@export var level_seed: int = -1
 @export var camera_speed: float = 900.0
 
 const GRID_WIDTH := 8
@@ -36,6 +36,7 @@ const BLOCK_LEFT := preload("res://scenes/blockade/left.tscn")
 const BLOCK_RIGHT := preload("res://scenes/blockade/right.tscn")
 
 var rng := RandomNumberGenerator.new()
+var generated_seed: int
 var edges: Array[Dictionary] = []
 var main_path: Array[Vector2i] = []
 var branch_cells: Array[Vector2i] = []
@@ -46,7 +47,12 @@ var occupied_tiles: Dictionary = {}
 
 func _ready() -> void:
 	_setup_camera_input()
-	rng.seed = level_seed
+	if level_seed == -1:
+		rng.randomize()
+	else:
+		rng.seed = level_seed
+	generated_seed = rng.seed
+	print("Level seed: ", generated_seed)
 	_generate_layout()
 	for edge in edges:
 		_register_opening(edge.a, edge.b - edge.a)
