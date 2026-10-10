@@ -1,3 +1,16 @@
-[gd_scene format=3 uid="uid://bhxrl05n7p4xu"]
+[gd_scene load_steps=2 format=3 uid="uid://bhxrl05n7p4xu"]
 
-[node name="Node2D" type="Node2D" unique_id=1072727656]
+[ext_resource type="Script" path="res://scripts/level_generator.gd" id="1_generator"]
+
+[node name="Level" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1_generator")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.65, 0.65)
+
+[node name="Rooms" type="Node2D" parent="."]
+
+[node name="Connectors" type="Node2D" parent="."]
+
+[node name="Blockades" type="Node2D" parent="."]
