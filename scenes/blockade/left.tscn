@@ -1,0 +1,14 @@
+[gd_scene format=4 uid="uid://b3n8y5u2i3fqr"]
+
+[ext_resource type="PackedScene" uid="uid://bx0oaxocvfdgl" path="res://scenes/room_template.tscn" id="1_saucx"]
+
+[node name="Room" unique_id=1846544674 instance=ExtResource("1_saucx")]
+
+[node name="Floors" parent="." index="0" unique_id=1332210914]
+tile_map_data = PackedByteArray("AAAAAP7/AAA+ABQAAAAAAP//AAAvAA4AAAAAAAAAAAAuAA8AAAD/////AAAvAA4AAAD//wAAAAAvAA4AAAD///7/AAA+ABQAAAA=")
+
+[node name="Extras" parent="." index="3" unique_id=1224343505]
+tile_map_data = PackedByteArray("AAAAAP7/AAAFABAAAAD///7/AAAFABAAAAA=")
+
+[node name="Walls" parent="." index="4" unique_id=1177966791]
+tile_map_data = PackedByteArray("AAAAAPr/AAAIAAcAAAAAAPv/AAAGAAkAAAABAPv/AAAEAAQAAAABAPz/AAAEAAUAAAAAAP3/AAAGAAkAAAABAP3/AAAEAAYAAAAAAPz/AAAGAAkAAAABAPr/AAAFAAEAAAAAAAEAAAAGAAMAAAABAAEAAAALAAEAAAABAP7/AAAEAAQAAAABAP//AAAEAAUAAAABAAAAAAAEAAYAAAD///3/AAAGAAkAAAD///z/AAAGAAkAAAD///v/AAAGAAkAAAD///r/AAAIAAcAAAD//wEAAAAGAAMAAAA=")
