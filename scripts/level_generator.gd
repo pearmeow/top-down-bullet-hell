@@ -8,9 +8,10 @@ const GRID_WIDTH := 8
 const GRID_HEIGHT := 6
 const CELL_WIDTH := 42
 const CELL_HEIGHT := 42
-const MAIN_PATH_MIN_ROOMS := 12
-const MAIN_PATH_MAX_ROOMS := 15
+const MAIN_PATH_ROOMS := 16
 const SIDE_BRANCHES := 3
+const COPIES_PER_ROOM := 2
+const BOSS_HALL_GAP := 6
 const TILE_SIZE := 16
 const ZOOM_STEP := 1.2
 const MIN_ZOOM := 0.3
@@ -23,10 +24,16 @@ const EAST := Vector2i.RIGHT
 const START_CELL := Vector2i(3, 2)
 
 const START_SCENE := preload("res://scenes/rooms/start.tscn")
+const SHOP_SCENE := preload("res://scenes/rooms/shop.tscn")
+const BOSS_SCENE := preload("res://scenes/rooms/boss_room.tscn")
 const BIG_SCENE := preload("res://scenes/rooms/big_room.tscn")
+const PITS_AND_SPIKES_SCENE := preload("res://scenes/rooms/pits_and_spikes_room.tscn")
 const PITS_SCENE := preload("res://scenes/rooms/pits_room.tscn")
+const SHOOTING_SCENE := preload("res://scenes/rooms/shooting_room.tscn")
 const SPIKE_SCENE := preload("res://scenes/rooms/spike_room.tscn")
 const THIN_SCENE := preload("res://scenes/rooms/thin_room.tscn")
+const WALLS_AND_SPIKES_SCENE := preload("res://scenes/rooms/walls_and_spikes_room.tscn")
+const WALLS_SCENE := preload("res://scenes/rooms/walls_room.tscn")
 
 const HALL_HORIZONTAL := preload("res://scenes/connectors/horizontal_hall.tscn")
 const HALL_VERTICAL := preload("res://scenes/connectors/vertical_hall.tscn")
@@ -40,8 +47,13 @@ var generated_seed: int
 var edges: Array[Dictionary] = []
 var main_path: Array[Vector2i] = []
 var branch_cells: Array[Vector2i] = []
+var shop_cell: Vector2i
+var boss_cell: Vector2i
+var boss_entrance_cell: Vector2i
+var boss_origin_y: int
 var rooms: Dictionary = {}
 var openings: Dictionary = {}
+var room_scenes: Dictionary = {}
 var occupied_tiles: Dictionary = {}
 
 
@@ -57,10 +69,13 @@ func _ready() -> void:
 	for edge in edges:
 		_register_opening(edge.a, edge.b - edge.a)
 		_register_opening(edge.b, edge.a - edge.b)
+	_assign_room_scenes()
 	for cell in main_path:
-		_create_room(cell)
+		if cell != boss_cell:
+			_create_room(cell)
 	for cell in branch_cells:
 		_create_room(cell)
+	_create_room(boss_cell)
 	for edge in edges:
 		_connect(edge.a, edge.b)
 	for cell in rooms:
@@ -105,15 +120,21 @@ func _setup_camera_input() -> void:
 ## A randomized depth-first walk creates a long, self-avoiding main route.
 ## Short branches from its interior become the optional dead ends.
 func _generate_layout() -> void:
-	for attempt in 100:
+	for attempt in 500:
+		edges.clear()
 		main_path.clear()
+		branch_cells.clear()
+		# These columns allow the fixed-length route to reach the room below the boss.
+		boss_cell = Vector2i(2 if rng.randi_range(0, 1) == 0 else 6, 0)
+		boss_entrance_cell = boss_cell + SOUTH
 		main_path.append(START_CELL)
 		var used: Dictionary = {START_CELL: true}
-		var target := rng.randi_range(MAIN_PATH_MIN_ROOMS, MAIN_PATH_MAX_ROOMS)
-		if not _extend_main_path(used, target):
+		if not _extend_main_path(used, MAIN_PATH_ROOMS - 1):
 			continue
+		main_path.append(boss_cell)
+		used[boss_cell] = true
 		var branch_options: Array[Dictionary] = []
-		for index in range(2, main_path.size() - 1):
+		for index in range(2, main_path.size() - 2):
 			var anchor := main_path[index]
 			for neighbor in _shuffled_neighbors(anchor):
 				if not used.has(neighbor) and _is_isolated_leaf(neighbor, anchor, used):
@@ -144,6 +165,8 @@ func _generate_layout() -> void:
 			used[option.cell] = true
 		if branch_cells.size() != SIDE_BRANCHES:
 			continue
+		# A shop is one of the optional dead ends, so it appears exactly once.
+		shop_cell = branch_cells[rng.randi_range(0, branch_cells.size() - 1)]
 		for index in range(main_path.size() - 1):
 			edges.append({"a": main_path[index], "b": main_path[index + 1]})
 		for branch in branch_cells:
@@ -152,15 +175,43 @@ func _generate_layout() -> void:
 					edges.append({"a": option.anchor, "b": branch})
 					branch_anchors.erase(option.anchor)
 					break
-		return
-	assert(false, "Could not build a main route with side branches")
+		if _has_required_room_slots():
+			return
+	assert(false, "Could not build a route with slots for every room type")
+
+
+func _has_required_room_slots() -> bool:
+	var exits: Dictionary = {}
+	for edge in edges:
+		for cell in [edge.a, edge.b]:
+			if not exits.has(cell):
+				exits[cell] = []
+		exits[edge.a].append(edge.b - edge.a)
+		exits[edge.b].append(edge.a - edge.b)
+	var vertical_slots := 0
+	var horizontal_slots := 0
+	for cell in exits:
+		if cell == START_CELL or cell == boss_cell or cell == shop_cell:
+			continue
+		var required: Array = exits[cell]
+		if not required.has(EAST) and not required.has(WEST):
+			vertical_slots += 1
+		if not required.has(NORTH) and not required.has(SOUTH):
+			horizontal_slots += 1
+	return vertical_slots >= COPIES_PER_ROOM and horizontal_slots >= COPIES_PER_ROOM
 
 
 func _extend_main_path(used: Dictionary, target: int) -> bool:
 	if main_path.size() == target:
-		return true
+		return main_path.back() == boss_entrance_cell
+	var steps_left := target - main_path.size()
+	var distance := absi(main_path.back().x - boss_entrance_cell.x) + absi(main_path.back().y - boss_entrance_cell.y)
+	if distance > steps_left or (steps_left - distance) % 2 != 0:
+		return false
 	for neighbor in _shuffled_neighbors(main_path.back()):
 		if used.has(neighbor):
+			continue
+		if neighbor == boss_entrance_cell and main_path.size() != target - 1:
 			continue
 		used[neighbor] = true
 		main_path.append(neighbor)
@@ -175,7 +226,8 @@ func _shuffled_neighbors(cell: Vector2i) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	for direction in [NORTH, SOUTH, WEST, EAST]:
 		var neighbor: Vector2i = cell + direction
-		if neighbor.x >= 0 and neighbor.x < GRID_WIDTH and neighbor.y >= 0 and neighbor.y < GRID_HEIGHT:
+		if neighbor.x >= 0 and neighbor.x < GRID_WIDTH and neighbor.y > 0 and neighbor.y < GRID_HEIGHT \
+				and (neighbor.x != boss_cell.x or neighbor == boss_entrance_cell):
 			result.append(neighbor)
 	_shuffle(result)
 	return result
@@ -202,29 +254,74 @@ func _register_opening(cell: Vector2i, direction: Vector2i) -> void:
 	openings[cell].append(direction)
 
 
+func _assign_room_scenes() -> void:
+	var vertical_slots: Array[Vector2i] = []
+	var horizontal_slots: Array[Vector2i] = []
+	for cell in openings:
+		if cell == START_CELL or cell == boss_cell or cell == shop_cell:
+			continue
+		var required: Array = openings[cell]
+		if not required.has(EAST) and not required.has(WEST):
+			vertical_slots.append(cell)
+		if not required.has(NORTH) and not required.has(SOUTH):
+			horizontal_slots.append(cell)
+	_shuffle(vertical_slots)
+	_shuffle(horizontal_slots)
+	room_scenes[shop_cell] = SHOP_SCENE
+	for index in COPIES_PER_ROOM:
+		room_scenes[vertical_slots[index]] = SPIKE_SCENE
+		room_scenes[horizontal_slots[index]] = THIN_SCENE
+
+	var remaining_cells: Array[Vector2i] = []
+	for cell in main_path:
+		if cell != START_CELL and cell != main_path.back() and not room_scenes.has(cell):
+			remaining_cells.append(cell)
+	for cell in branch_cells:
+		if not room_scenes.has(cell):
+			remaining_cells.append(cell)
+	var general_scenes: Array[PackedScene] = []
+	for scene in [BIG_SCENE, PITS_AND_SPIKES_SCENE, PITS_SCENE,
+			SHOOTING_SCENE, WALLS_AND_SPIKES_SCENE, WALLS_SCENE]:
+		for copy in COPIES_PER_ROOM:
+			general_scenes.append(scene)
+	assert(remaining_cells.size() == general_scenes.size())
+	_shuffle(remaining_cells)
+	_shuffle(general_scenes)
+	for index in remaining_cells.size():
+		room_scenes[remaining_cells[index]] = general_scenes[index]
+
+
 func _room_origin(cell: Vector2i) -> Vector2i:
+	if cell == boss_cell:
+		return Vector2i(cell.x * CELL_WIDTH, boss_origin_y)
 	return Vector2i(cell.x * CELL_WIDTH, cell.y * CELL_HEIGHT)
 
 
 func _create_room(cell: Vector2i) -> void:
-	var required: Array = openings[cell]
 	var scene: PackedScene
 	if cell == START_CELL:
 		scene = START_SCENE
+	elif cell == main_path.back():
+		scene = BOSS_SCENE
 	else:
-		var choices: Array[PackedScene] = [BIG_SCENE, PITS_SCENE]
-		if not required.has(EAST) and not required.has(WEST):
-			choices.append(SPIKE_SCENE)
-		if not required.has(NORTH) and not required.has(SOUTH):
-			choices.append(THIN_SCENE)
-		scene = choices[rng.randi_range(0, choices.size() - 1)]
+		scene = room_scenes[cell]
 	var room := scene.instantiate() as Node2D
 	if cell == START_CELL:
 		room.name = "Start"
 	elif cell == main_path.back():
-		room.name = "End"
+		room.name = "Boss"
+	elif cell == shop_cell:
+		room.name = "Shop"
 	else:
 		room.name = scene.resource_path.get_file().get_basename() + "_%d_%d" % [cell.x, cell.y]
+	if cell == boss_cell:
+		# Place the oversized boss room above every room in the entrance row.
+		var nearest_top := 2147483647
+		for other_cell in rooms:
+			if other_cell.y == boss_entrance_cell.y:
+				nearest_top = mini(nearest_top, _room_origin(other_cell).y + _bounds(rooms[other_cell]).position.y)
+		assert(nearest_top != 2147483647)
+		boss_origin_y = nearest_top - _bounds(room).end.y - BOSS_HALL_GAP
 	room.position = Vector2(_room_origin(cell) * TILE_SIZE)
 	$Rooms.add_child(room)
 	_reserve_room_tiles(room, _room_origin(cell))
@@ -320,7 +417,9 @@ func _cap_unused_openings(cell: Vector2i) -> void:
 	var origin := _room_origin(cell)
 	var connected: Array = openings[cell]
 	var available: Array[Vector2i] = [NORTH, SOUTH, WEST, EAST]
-	if room.scene_file_path == SPIKE_SCENE.resource_path:
+	if cell == boss_cell:
+		available = [SOUTH]
+	elif room.scene_file_path == SPIKE_SCENE.resource_path:
 		available = [NORTH, SOUTH]
 	elif room.scene_file_path == THIN_SCENE.resource_path:
 		available = [WEST, EAST]
