@@ -2,7 +2,7 @@ extends Node2D
 
 ## -1 chooses a new seed on every launch; set a seed to replay a layout.
 @export var level_seed: int = -1
-@export var camera_speed: float = 900.0
+@export var playtest_mode := false
 
 const GRID_WIDTH := 8
 const GRID_HEIGHT := 6
@@ -13,9 +13,8 @@ const SIDE_BRANCHES := 3
 const COPIES_PER_ROOM := 2
 const BOSS_HALL_GAP := 6
 const TILE_SIZE := 16
-const ZOOM_STEP := 1.2
-const MIN_ZOOM := 0.3
-const MAX_ZOOM := 2.0
+const ENCOUNTER_SCRIPT := preload("res://scripts/room_encounter.gd")
+const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 
 const NORTH := Vector2i.UP
 const SOUTH := Vector2i.DOWN
@@ -55,10 +54,12 @@ var rooms: Dictionary = {}
 var openings: Dictionary = {}
 var room_scenes: Dictionary = {}
 var occupied_tiles: Dictionary = {}
+var services: Node2D
+var player: CharacterBody2D
 
 
 func _ready() -> void:
-	_setup_camera_input()
+	_setup_player_input()
 	if level_seed == -1:
 		rng.randomize()
 	else:
@@ -80,33 +81,25 @@ func _ready() -> void:
 		_connect(edge.a, edge.b)
 	for cell in rooms:
 		_cap_unused_openings(cell)
-	$Camera2D.position = rooms[START_CELL].position
+	_spawn_player()
+	$CombatHUD.bind_player(player)
+	_setup_encounters()
+	services = Node2D.new()
+	services.set_script(preload("res://scripts/game_services.gd"))
+	services.name = "GameServices"
+	add_child(services)
+	services.configure(self)
 
 
-func _process(delta: float) -> void:
-	var direction := Input.get_vector("camera_left", "camera_right", "camera_up", "camera_down")
-	$Camera2D.position += direction * camera_speed * delta
+func _process(_delta: float) -> void:
+	if is_instance_valid(player):
+		$Camera2D.global_position = player.global_position
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
-		var zoom_factor := 1.0
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			zoom_factor = ZOOM_STEP
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			zoom_factor = 1.0 / ZOOM_STEP
-		else:
-			return
-		var zoom_level := clampf($Camera2D.zoom.x * zoom_factor, MIN_ZOOM, MAX_ZOOM)
-		$Camera2D.zoom = Vector2.ONE * zoom_level
-
-
-func _setup_camera_input() -> void:
+func _setup_player_input() -> void:
 	var bindings := {
-		"camera_left": KEY_A,
-		"camera_right": KEY_D,
-		"camera_up": KEY_W,
-		"camera_down": KEY_S,
+		"move_left": KEY_A, "move_right": KEY_D,
+		"move_up": KEY_W, "move_down": KEY_S, "dodge": KEY_SPACE, "interact": KEY_E, "cancel_shop": KEY_ESCAPE,
 	}
 	for action in bindings:
 		if InputMap.has_action(action):
@@ -115,6 +108,35 @@ func _setup_camera_input() -> void:
 		var key := InputEventKey.new()
 		key.physical_keycode = bindings[action]
 		InputMap.action_add_event(action, key)
+	if not InputMap.has_action("shoot"):
+		InputMap.add_action("shoot")
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		InputMap.action_add_event("shoot", click)
+
+
+func _spawn_player() -> void:
+	var start_room: Node2D = rooms[START_CELL]
+	var floors := start_room.get_node("Floors") as TileMapLayer
+	var candidates := floors.get_used_cells()
+	candidates.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return a.length_squared() < b.length_squared())
+	var spawn_tile := Vector2i.ZERO
+	for cell in candidates:
+		var safe := true
+		for layer_name in ["Walls", "Structures", "Pits", "Spikes"]:
+			var layer := start_room.get_node_or_null(layer_name) as TileMapLayer
+			if layer != null and layer.get_cell_source_id(cell) != -1:
+				safe = false
+		if safe:
+			spawn_tile = cell
+			break
+	player = PLAYER_SCENE.instantiate() as CharacterBody2D
+	if playtest_mode:
+		player.max_health = 10
+		player.coins = 30
+	add_child(player)
+	player.global_position = floors.to_global(floors.map_to_local(spawn_tile))
+	$Camera2D.global_position = player.global_position
 
 
 ## A randomized depth-first walk creates a long, self-avoiding main route.
@@ -434,3 +456,20 @@ func _cap_unused_openings(cell: Vector2i) -> void:
 			_place(BLOCK_RIGHT, origin + Vector2i(bounds.position.x - 1, 0), $Blockades)
 		else:
 			_place(BLOCK_LEFT, origin + Vector2i(bounds.end.x + 1, 0), $Blockades)
+
+
+func _setup_encounters() -> void:
+	for cell in rooms:
+		if cell == shop_cell:
+			continue
+		var encounter := Node2D.new()
+		encounter.set_script(ENCOUNTER_SCRIPT)
+		encounter.name = "Encounter"
+		rooms[cell].add_child(encounter)
+		var counts: Array[int] = [2, 3]
+		if cell == START_CELL:
+			counts = [1, 2]
+		elif cell == boss_cell:
+			counts = [3, 1]
+			encounter.boss_room = true
+		encounter.configure(rooms[cell], player, openings[cell], $CombatHUD, counts)

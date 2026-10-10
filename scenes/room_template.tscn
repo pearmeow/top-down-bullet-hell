@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://bx0oaxocvfdgl"]
 
+[ext_resource type="Script" path="res://scripts/room_collision.gd" id="player_collision"]
+
 [ext_resource type="TileSet" uid="uid://4yeremxwe5aj" path="res://assets/tileset/room_tileset.tres" id="1_2lsvk"]
 [ext_resource type="Texture2D" uid="uid://baqs0u5yysgkk" path="res://assets/tileset/mainlevbuild.png" id="2_iahlw"]
 
@@ -1034,6 +1036,7 @@ texture = ExtResource("2_iahlw")
 sources/0 = SubResource("TileSetAtlasSource_nqrut")
 
 [node name="Room" type="Node2D" unique_id=1846544674]
+script = ExtResource("player_collision")
 texture_filter = 1
 
 [node name="Floors" type="TileMapLayer" parent="." unique_id=1332210914]

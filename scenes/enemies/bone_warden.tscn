@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton.tscn" id="1"]
+
+[node name="BoneWarden" instance=ExtResource("1")]
+scale = Vector2(1.5, 1.5)
+boss = true
+ranged = true
+base_tint = Color(1, 0.55, 0.45, 1)
+speed = 32.0
+max_health = 18

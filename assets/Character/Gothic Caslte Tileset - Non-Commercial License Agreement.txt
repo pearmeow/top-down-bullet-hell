@@ -1,0 +1,39 @@
+Gothic Castle Asset Pack - Free (Non-Commercial) License Agreement
+
+This License Agreement governs the use of the accompanying free digital asset pack (“Assets”).
+
+1. Grant of License
+
+You are granted a non-exclusive, non-transferable license to use the free version of the asset pack only for non-commercial projects.
+
+2. Permitted Use
+
+You may:
+
+Use the Assets in non-commercial projects only (personal projects, learning, prototypes, game jams without monetization, etc.).
+
+Modify, edit, or adapt the Assets to suit your project needs.
+
+3. Restrictions
+
+You may not:
+
+Use the Assets in any commercial or monetized project.
+
+Sell, sublicense, share, or redistribute the Assets, whether in original or modified form.
+
+Include the Assets in asset packs, templates, libraries, or any product where the Assets can be extracted.
+
+Use the Assets for AI training, machine learning, data sets, or generative systems, whether commercial or non-commercial.
+
+4. Credit
+
+Credit is required and must clearly acknowledge the original creator in a visible location (such as a game credits screen, project page, or documentation).
+
+5. Ownership
+
+All rights, title, and interest in the Assets remain with the original creator. This license does not grant ownership of the Assets.
+
+6. Termination
+
+This license is automatically terminated if any of the above terms are violated. Upon termination, all use of the Assets must cease.

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton.tscn" id="1"]
+
+[node name="BoneCaster" instance=ExtResource("1")]
+ranged = true
+base_tint = Color(0.75, 0.6, 1, 1)
+speed = 40.0
