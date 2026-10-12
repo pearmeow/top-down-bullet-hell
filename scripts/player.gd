@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
-@export var move_speed: float = 90.0
+@export var move_speed: float = 100.0
+@export var exploration_speed_multiplier: float = 3.0
 @export var roll_speed: float = 210.0
 @export var roll_duration: float = 0.28
 @export var roll_cooldown: float = 0.55
@@ -14,7 +15,7 @@ var weapon_upgraded := false
 var menu_open := false
 var last_safe_position := Vector2.ZERO
 var fall_time := 0.0
-@export var max_health: int = 3
+@export var max_health: int = 6
 var health: int = 3
 var invulnerability: float = 0.0
 var dead := false
@@ -89,7 +90,7 @@ func _physics_process(delta: float) -> void:
 		roll_time = maxf(0.0, roll_time - delta)
 	else:
 		sprite.speed_scale = 1.0
-		velocity = direction * move_speed
+		velocity = direction * movement_speed()
 		if direction == Vector2.ZERO:
 			sprite.play("idle_" + facing)
 		else:
@@ -143,3 +144,9 @@ func fall_into_pit() -> void:
 	if not dead:
 		fall_time = 0.35
 		velocity = Vector2.ZERO
+
+func movement_speed() -> float:
+	for encounter in get_tree().get_nodes_in_group("encounters"):
+		if encounter.active and not encounter.cleared:
+			return move_speed
+	return move_speed * exploration_speed_multiplier

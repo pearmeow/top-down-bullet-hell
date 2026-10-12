@@ -8,6 +8,7 @@ var merchant: Sprite2D
 var shop_open := false
 var has_familiar := false
 var clears := 0
+@export_range(0.0, 1.0) var enemy_health_drop_chance := 0.15
 
 func configure(value: Node2D) -> void:
 	level = value
@@ -57,6 +58,8 @@ func enemy_reward(enemy: CharacterBody2D) -> void:
 	var coin := drop("coin", point, 2 if enemy.ranged else 1)
 	if is_instance_valid(enemy.encounter):
 		coin.reward_room = enemy.encounter.room
+	if level.rng.randf() < enemy_health_drop_chance:
+		drop("health", point)
 
 func room_reward(room: Node2D) -> void:
 	clears += 1
@@ -70,7 +73,7 @@ func room_reward(room: Node2D) -> void:
 		var coin := drop("coin", point + Vector2((bonus - 1) * 8, -4))
 		coin.reward_room = room
 		coin.collect_automatically(0.08 * bonus)
-	if clears % 3 == 0:
+	if clears % 2 == 0:
 		drop("health", safe_position(room, point + Vector2(24, 0)))
 	if clears == 4 and not player.weapon_upgraded:
 		drop("weapon", safe_position(room, point + Vector2(-24, 0)))
