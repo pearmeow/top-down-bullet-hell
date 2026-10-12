@@ -21,6 +21,8 @@ var invulnerability: float = 0.0
 var dead := false
 
 const BULLET_SCENE := preload("res://scenes/projectiles/bullet.tscn")
+var keyboard_aim := false
+var last_move_direction := Vector2.DOWN
 var facing := "down"
 var roll_direction := Vector2.DOWN
 var roll_time: float = 0.0
@@ -74,6 +76,7 @@ func _physics_process(delta: float) -> void:
 	shot_time = maxf(0.0, shot_time - delta)
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if direction != Vector2.ZERO and roll_time <= 0.0:
+		last_move_direction = direction
 		if absf(direction.x) >= absf(direction.y):
 			facing = "left" if direction.x < 0.0 else "right"
 		else:
@@ -96,12 +99,19 @@ func _physics_process(delta: float) -> void:
 		else:
 			sprite.play("walk_" + facing)
 	move_and_slide()
-	weapon.look_at(get_global_mouse_position())
+	if Input.is_action_pressed("shoot_keyboard"):
+		keyboard_aim = true
+	if Input.is_action_pressed("shoot"):
+		keyboard_aim = false
+	if keyboard_aim:
+		weapon.rotation = last_move_direction.angle()
+	else:
+		weapon.look_at(get_global_mouse_position())
 	gun.flip_v = cos(weapon.global_rotation) < 0.0
 	weapon.visible = roll_time <= 0.0
 	gun.position.x = 5.0 if shot_time > shot_interval - 0.08 else 6.0
 	muzzle.position.x = gun.position.x + gun.region_rect.size.x * gun.scale.x / 2.0
-	if Input.is_action_pressed("shoot") and shot_time <= 0.0 and roll_time <= 0.0:
+	if (Input.is_action_pressed("shoot") or Input.is_action_pressed("shoot_keyboard")) and shot_time <= 0.0 and roll_time <= 0.0:
 		_shoot()
 
 func _shoot() -> void:
@@ -150,3 +160,7 @@ func movement_speed() -> float:
 		if encounter.active and not encounter.cleared:
 			return move_speed
 	return move_speed * exploration_speed_multiplier
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and event.relative.length_squared() > 0.0:
+		keyboard_aim = false

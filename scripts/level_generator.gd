@@ -99,7 +99,7 @@ func _process(_delta: float) -> void:
 func _setup_player_input() -> void:
 	var bindings := {
 		"move_left": KEY_A, "move_right": KEY_D,
-		"move_up": KEY_W, "move_down": KEY_S, "dodge": KEY_SPACE, "interact": KEY_E, "cancel_shop": KEY_ESCAPE,
+		"move_up": KEY_W, "move_down": KEY_S, "dodge": KEY_SPACE, "interact": KEY_E, "cancel_shop": KEY_ESCAPE, "shoot_keyboard": KEY_J,
 	}
 	for action in bindings:
 		if InputMap.has_action(action):
@@ -460,16 +460,14 @@ func _cap_unused_openings(cell: Vector2i) -> void:
 
 func _setup_encounters() -> void:
 	for cell in rooms:
-		if cell == shop_cell:
+		if cell == shop_cell or cell == START_CELL:
 			continue
 		var encounter := Node2D.new()
 		encounter.set_script(ENCOUNTER_SCRIPT)
 		encounter.name = "Encounter"
 		rooms[cell].add_child(encounter)
 		var counts: Array[int] = [2, 3]
-		if cell == START_CELL:
-			counts = [1, 2]
-		elif cell == boss_cell:
+		if cell == boss_cell:
 			counts = [3, 1]
 			encounter.boss_room = true
 		encounter.configure(rooms[cell], player, openings[cell], $CombatHUD, counts)

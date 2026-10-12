@@ -1,11 +1,9 @@
 extends CharacterBody2D
 
 var lifetime := 3.0
-var spin := 9.0
 
 func _physics_process(delta: float) -> void:
 	lifetime -= delta
-	$Sprite2D.rotation += spin * delta
 	if lifetime <= 0.0:
 		queue_free()
 		return

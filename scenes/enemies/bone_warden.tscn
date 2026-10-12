@@ -1,11 +1,50 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/enemies/skeleton.tscn" id="1"]
+[ext_resource type="Texture2D" path="res://assets/Enemies/dungeon_characters.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="idle0"]
+atlas = ExtResource("2")
+region = Rect2(16, 384, 32, 32)
+
+[sub_resource type="AtlasTexture" id="idle1"]
+atlas = ExtResource("2")
+region = Rect2(48, 384, 32, 32)
+
+[sub_resource type="AtlasTexture" id="idle2"]
+atlas = ExtResource("2")
+region = Rect2(80, 384, 32, 32)
+
+[sub_resource type="AtlasTexture" id="idle3"]
+atlas = ExtResource("2")
+region = Rect2(112, 384, 32, 32)
+
+[sub_resource type="AtlasTexture" id="walk0"]
+atlas = ExtResource("2")
+region = Rect2(144, 384, 32, 32)
+
+[sub_resource type="AtlasTexture" id="walk1"]
+atlas = ExtResource("2")
+region = Rect2(176, 384, 32, 32)
+
+[sub_resource type="AtlasTexture" id="walk2"]
+atlas = ExtResource("2")
+region = Rect2(208, 384, 32, 32)
+
+[sub_resource type="AtlasTexture" id="walk3"]
+atlas = ExtResource("2")
+region = Rect2(240, 384, 32, 32)
+
+[sub_resource type="SpriteFrames" id="Frames"]
+animations = [{"frames": [{"duration": 1.0, "texture": SubResource("idle0")}, {"duration": 1.0, "texture": SubResource("idle1")}, {"duration": 1.0, "texture": SubResource("idle2")}, {"duration": 1.0, "texture": SubResource("idle3")}], "loop": true, "name": &"idle", "speed": 6.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("walk0")}, {"duration": 1.0, "texture": SubResource("walk1")}, {"duration": 1.0, "texture": SubResource("walk2")}, {"duration": 1.0, "texture": SubResource("walk3")}], "loop": true, "name": &"walk", "speed": 6.0}]
 
 [node name="BoneWarden" instance=ExtResource("1")]
-scale = Vector2(1.5, 1.5)
-boss = true
 ranged = true
-base_tint = Color(1, 0.55, 0.45, 1)
 speed = 32.0
+boss = true
 max_health = 18
+
+[node name="AnimatedSprite2D" parent="." index="0"]
+sprite_frames = SubResource("Frames")
+position = Vector2(0, -16)

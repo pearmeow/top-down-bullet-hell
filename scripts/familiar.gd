@@ -63,4 +63,3 @@ func _physics_process(delta: float) -> void:
 	var direction := global_position.direction_to(target.global_position)
 	bullet.rotation = direction.angle()
 	bullet.velocity = direction * bullet.speed
-	bullet.modulate = Color(0.5, 0.85, 1.0)

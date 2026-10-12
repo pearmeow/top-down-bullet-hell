@@ -4,11 +4,13 @@ const PICKUP := preload("res://scripts/pickup.gd")
 const FAMILIAR := preload("res://scripts/familiar.gd")
 var level: Node2D
 var player: CharacterBody2D
+var guide: Sprite2D
+var tutorial_open := false
 var merchant: Sprite2D
 var shop_open := false
 var has_familiar := false
 var clears := 0
-@export_range(0.0, 1.0) var enemy_health_drop_chance := 0.15
+@export_range(0.0, 1.0) var room_health_reward_chance := 0.35
 
 func configure(value: Node2D) -> void:
 	level = value
@@ -22,6 +24,25 @@ func configure(value: Node2D) -> void:
 	merchant.z_index = 10
 	add_child(merchant)
 	merchant.global_position = safe_position(level.rooms[level.shop_cell], level.rooms[level.shop_cell].global_position + Vector2(8, -24)) + Vector2(0, -8)
+	guide = Sprite2D.new()
+	var guide_atlas := AtlasTexture.new()
+	guide_atlas.atlas = preload("res://assets/Enemies/dungeon_characters.png")
+	guide_atlas.region = Rect2(128, 176, 16, 32)
+	guide.texture = guide_atlas
+	guide.name = "TutorialGuide"
+	guide.z_index = 10
+	add_child(guide)
+	guide.global_position = safe_position(level.rooms[level.START_CELL], player.global_position + Vector2(48, 0)) + Vector2(0, -8)
+	var name_label := Label.new()
+	name_label.text = "Guide"
+	name_label.add_theme_font_override("font", preload("res://assets/Fonts/PixelifySans.ttf"))
+	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.modulate = Color(0.81, 0.71, 0.54)
+	name_label.position = Vector2(-14, -26)
+	name_label.scale = Vector2(0.5, 0.5)
+	guide.add_child(name_label)
+	_add_npc_collision(merchant)
+	_add_npc_collision(guide)
 	player.last_safe_position = player.global_position
 	level.get_node("CombatHUD").bind_services(self)
 
@@ -58,8 +79,6 @@ func enemy_reward(enemy: CharacterBody2D) -> void:
 	var coin := drop("coin", point, 2 if enemy.ranged else 1)
 	if is_instance_valid(enemy.encounter):
 		coin.reward_room = enemy.encounter.room
-	if level.rng.randf() < enemy_health_drop_chance:
-		drop("health", point)
 
 func room_reward(room: Node2D) -> void:
 	clears += 1
@@ -69,24 +88,39 @@ func room_reward(room: Node2D) -> void:
 		if pickup.kind == "coin" and pickup.reward_room == room and not pickup.is_queued_for_deletion():
 			pickup.collect_automatically(minf(index * 0.04, 0.2))
 			index += 1
-	for bonus in 3:
-		var coin := drop("coin", point + Vector2((bonus - 1) * 8, -4))
-		coin.reward_room = room
-		coin.collect_automatically(0.08 * bonus)
-	if clears % 2 == 0:
-		drop("health", safe_position(room, point + Vector2(24, 0)))
-	if clears == 4 and not player.weapon_upgraded:
-		drop("weapon", safe_position(room, point + Vector2(-24, 0)))
+	if level.rng.randf() < room_health_reward_chance:
+		drop("health", point)
+	else:
+		for bonus in 3:
+			var coin := drop("coin", point + Vector2((bonus - 1) * 8, -4))
+			coin.reward_room = room
+			coin.collect_automatically(0.08 * bonus)
 
 func _physics_process(_delta: float) -> void:
 	if player == null or player.dead:
 		if shop_open:
 			close_shop()
+		if tutorial_open:
+			close_tutorial()
 		return
+	var guide_near := player.global_position.distance_to(guide.global_position + Vector2(0, 8)) < 56.0
 	var near := player.global_position.distance_to(merchant.global_position + Vector2(0, 8)) < 44.0
 	var hud := level.get_node("CombatHUD")
-	hud.set_interaction("E · Speak to the shopkeeper" if near and not shop_open else "")
-	if shop_open and (not near or Input.is_action_just_pressed("cancel_shop")):
+	var prompt := ""
+	if not shop_open and not tutorial_open:
+		if guide_near:
+			prompt = "E · Talk to the guide (optional)"
+		elif near:
+			prompt = "E · Speak to the shopkeeper"
+	hud.set_interaction(prompt)
+	if tutorial_open:
+		if not guide_near or Input.is_action_just_pressed("cancel_shop") or Input.is_action_just_pressed("interact"):
+			close_tutorial()
+	elif guide_near and Input.is_action_just_pressed("interact"):
+		tutorial_open = true
+		player.menu_open = true
+		hud.open_tutorial()
+	elif shop_open and (not near or Input.is_action_just_pressed("cancel_shop")):
 		close_shop()
 	elif near and Input.is_action_just_pressed("interact"):
 		if shop_open:
@@ -154,3 +188,21 @@ func buy(item: String) -> String:
 		add_child(familiar)
 		familiar.global_position = player.global_position
 	return "A deal well made."
+
+func close_tutorial() -> void:
+	tutorial_open = false
+	player.menu_open = false
+	level.get_node("CombatHUD").close_tutorial()
+
+func _add_npc_collision(npc: Sprite2D) -> void:
+	var body := StaticBody2D.new()
+	body.name = "Body"
+	body.position = Vector2(0, 8)
+	body.collision_layer = 32
+	body.collision_mask = 0
+	var shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 5.0
+	shape.shape = circle
+	body.add_child(shape)
+	npc.add_child(body)

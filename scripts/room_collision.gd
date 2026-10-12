@@ -3,7 +3,10 @@ extends Node2D
 static var wall_tilesets: Dictionary = {}
 
 func _ready() -> void:
-	var walls := get_node_or_null("Walls") as TileMapLayer
+	for layer_name in ["Walls", "Structures"]:
+		_add_solid_collision(get_node_or_null(layer_name) as TileMapLayer)
+
+func _add_solid_collision(walls: TileMapLayer) -> void:
 	if walls == null or walls.tile_set == null:
 		return
 	var original := walls.tile_set

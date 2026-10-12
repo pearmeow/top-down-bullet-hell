@@ -1,0 +1,11 @@
+[gd_resource type="TileSet" load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/tileset/room_animations.png" id="1"]
+
+[sub_resource type="TileSetAtlasSource" id="RaisedSpikes"]
+texture = ExtResource("1")
+4:3/0 = 0
+4:3/0/z_index = 1
+
+[resource]
+sources/3 = SubResource("RaisedSpikes")

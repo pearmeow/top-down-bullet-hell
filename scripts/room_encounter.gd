@@ -1,6 +1,8 @@
 extends Node2D
 
 var boss_room := false
+const SPAWN_MARKER := preload("res://scripts/spawn_marker.gd")
+var spawn_markers: Array[Node2D] = []
 const BOSS_ENEMY := preload("res://scenes/enemies/bone_warden.tscn")
 const RANGED_ENEMY := preload("res://scenes/enemies/bone_caster.tscn")
 const ENEMY := preload("res://scenes/enemies/skeleton.tscn")
@@ -106,6 +108,7 @@ func _next_wave() -> void:
 		return
 	living = 0
 	enemies.clear()
+	var spawns: Array[Dictionary] = []
 	var candidates := safe_cells.duplicate()
 	candidates.shuffle()
 	for cell in candidates:
@@ -120,24 +123,42 @@ func _next_wave() -> void:
 		if path_between(point, player.global_position).is_empty():
 			continue
 		var crowded := false
-		for other in enemies:
-			if point.distance_to(other.global_position) < 24.0:
+		for other in spawns:
+			if point.distance_to(other.point) < 24.0:
 				crowded = true
 		if crowded:
 			continue
 		var enemy_scene := RANGED_ENEMY if waves[wave_index] >= 2 and living == waves[wave_index] - 1 else ENEMY
 		if boss_room and wave_index == waves.size() - 1:
 			enemy_scene = BOSS_ENEMY
-		var enemy := enemy_scene.instantiate() as CharacterBody2D
-		enemy.encounter = self
-		enemy.position = room.to_local(point)
-		enemy.died.connect(_enemy_died)
-		room.add_child(enemy)
-		enemies.append(enemy)
+		spawns.append({"scene": enemy_scene, "point": point})
+		var marker := Node2D.new()
+		marker.set_script(SPAWN_MARKER)
+		marker.position = room.to_local(point)
+		room.add_child(marker)
+		spawn_markers.append(marker)
 		living += 1
 	_update_status()
 	if living == 0:
 		_queue_wave()
+		return
+	await get_tree().create_timer(0.5).timeout
+	_clear_spawn_markers()
+	if cleared or not active or not is_instance_valid(player) or player.dead:
+		return
+	for spawn in spawns:
+		var enemy := (spawn.scene as PackedScene).instantiate() as CharacterBody2D
+		enemy.encounter = self
+		enemy.position = room.to_local(spawn.point)
+		enemy.died.connect(_enemy_died)
+		room.add_child(enemy)
+		enemies.append(enemy)
+
+func _clear_spawn_markers() -> void:
+	for marker in spawn_markers:
+		if is_instance_valid(marker):
+			marker.queue_free()
+	spawn_markers.clear()
 
 func _enemy_died() -> void:
 	living = maxi(0, living - 1)
@@ -159,6 +180,7 @@ func _finish() -> void:
 		return
 	cleared = true
 	active = false
+	_clear_spawn_markers()
 	for gate in gates:
 		gate.queue_free()
 	gates.clear()

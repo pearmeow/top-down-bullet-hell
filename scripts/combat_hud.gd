@@ -49,6 +49,7 @@ var services: Node2D
 var coin_counter: Control
 var interaction_label: Label
 var shop_panel: PanelContainer
+var tutorial_panel: PanelContainer
 var shop_message: Label
 
 func bind_services(value: Node2D) -> void:
@@ -97,6 +98,15 @@ func bind_services(value: Node2D) -> void:
 	shop_message.text = "E or Escape · Leave shop"
 	box.add_child(shop_message)
 	shop_panel.hide()
+	tutorial_panel = PanelContainer.new()
+	tutorial_panel.theme = ui_theme
+	tutorial_panel.position = Vector2(16, 112)
+	tutorial_panel.add_theme_stylebox_override("panel", frame)
+	add_child(tutorial_panel)
+	var help := Label.new()
+	help.text = "Welcome to the catacombs.\n\nWASD  -  Move\nMouse + left click  -  Aim and shoot\nJ  -  Shoot in your last movement direction\nSpace  -  Roll; dodge attacks and cross pits\nE  -  Talk to NPCs\n\nClear every wave to open the exits.\nGold flies to you when the room clears.\nHearts restore health. Coins buy shop items.\n\nE or Escape  -  Close"
+	tutorial_panel.add_child(help)
+	tutorial_panel.hide()
 	if get_parent().playtest_mode:
 		var notice := Label.new()
 		notice.theme = ui_theme
@@ -125,3 +135,9 @@ func show_victory() -> void:
 	$DeathPanel/Center/Restart.text = "New run (R)"
 	$DeathPanel.show()
 	$DeathPanel/Center/Restart.grab_focus()
+
+func open_tutorial() -> void:
+	tutorial_panel.show()
+
+func close_tutorial() -> void:
+	tutorial_panel.hide()
