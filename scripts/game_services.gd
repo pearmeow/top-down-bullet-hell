@@ -54,12 +54,22 @@ func enemy_reward(enemy: CharacterBody2D) -> void:
 	var point := enemy.global_position
 	if is_instance_valid(enemy.encounter):
 		point = safe_position(enemy.encounter.room, point)
-	drop("coin", point, 2 if enemy.ranged else 1)
+	var coin := drop("coin", point, 2 if enemy.ranged else 1)
+	if is_instance_valid(enemy.encounter):
+		coin.reward_room = enemy.encounter.room
 
 func room_reward(room: Node2D) -> void:
 	clears += 1
 	var point := safe_position(room, player.global_position + Vector2(24, 0))
-	drop("coin", point, 3)
+	var index := 0
+	for pickup in get_tree().get_nodes_in_group("pickups"):
+		if pickup.kind == "coin" and pickup.reward_room == room and not pickup.is_queued_for_deletion():
+			pickup.collect_automatically(minf(index * 0.04, 0.2))
+			index += 1
+	for bonus in 3:
+		var coin := drop("coin", point + Vector2((bonus - 1) * 8, -4))
+		coin.reward_room = room
+		coin.collect_automatically(0.08 * bonus)
 	if clears % 3 == 0:
 		drop("health", safe_position(room, point + Vector2(24, 0)))
 	if clears == 4 and not player.weapon_upgraded:

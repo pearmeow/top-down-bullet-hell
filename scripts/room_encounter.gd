@@ -167,7 +167,7 @@ func _finish() -> void:
 	var services := get_tree().current_scene.get_node_or_null("GameServices")
 	if services != null:
 		services.room_reward(room)
-	hud.set_encounter_text("Room cleared · collect your reward")
+	hud.set_encounter_text("Room cleared")
 	if boss_room:
 		hud.show_victory()
 
