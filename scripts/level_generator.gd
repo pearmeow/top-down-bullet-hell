@@ -89,6 +89,14 @@ func _ready() -> void:
 	services.name = "GameServices"
 	add_child(services)
 	services.configure(self)
+	for index in 2:
+		var skip_button := preload("res://scripts/skip_button.gd").new() as Button
+		$CombatHUD.add_child(skip_button)
+		skip_button.configure(self, ["boss", "shop"][index], index)
+	var pointer := preload("res://scripts/shop_pointer.gd").new() as Node2D
+	pointer.player = player
+	pointer.merchant = services.merchant
+	add_child(pointer)
 
 
 func _process(_delta: float) -> void:

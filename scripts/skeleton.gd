@@ -12,6 +12,7 @@ var attack_cycle := 0
 @export var ranged := false
 @export var base_tint := Color.WHITE
 @export var speed: float = 48.0
+@export var attack_range: float = 260.0
 @export var max_health: int = 3
 var health: int = 3
 var player: CharacterBody2D
@@ -71,7 +72,7 @@ func _physics_process(delta: float) -> void:
 		if windup <= 0.0:
 			_throw()
 			attack_timer = (randf_range(0.9, 1.3) if ranged else randf_range(0.55, 0.9)) * attack_pace
-	elif attack_timer <= 0.0 and can_see and global_position.distance_to(player.global_position) < 260.0:
+	elif attack_timer <= 0.0 and can_see and global_position.distance_to(player.global_position) < attack_range:
 		windup = (0.4 if ranged else 0.3) * (1.4 if attack_pace > 1.0 else 1.0)
 		aim = global_position.direction_to(player.global_position)
 	var desired := direction * minf(speed, global_position.distance_to(destination) / delta)

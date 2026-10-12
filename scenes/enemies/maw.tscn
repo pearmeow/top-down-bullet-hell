@@ -1,0 +1,60 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/skeleton.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/boss.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/Enemies/dungeon_characters.png" id="3"]
+
+[sub_resource type="AtlasTexture" id="idle0"]
+atlas = ExtResource("3")
+region = Rect2(16, 428, 32, 36)
+
+[sub_resource type="AtlasTexture" id="idle1"]
+atlas = ExtResource("3")
+region = Rect2(48, 428, 32, 36)
+
+[sub_resource type="AtlasTexture" id="idle2"]
+atlas = ExtResource("3")
+region = Rect2(80, 428, 32, 36)
+
+[sub_resource type="AtlasTexture" id="idle3"]
+atlas = ExtResource("3")
+region = Rect2(112, 428, 32, 36)
+
+[sub_resource type="AtlasTexture" id="walk0"]
+atlas = ExtResource("3")
+region = Rect2(144, 428, 32, 36)
+
+[sub_resource type="AtlasTexture" id="walk1"]
+atlas = ExtResource("3")
+region = Rect2(176, 428, 32, 36)
+
+[sub_resource type="AtlasTexture" id="walk2"]
+atlas = ExtResource("3")
+region = Rect2(208, 428, 32, 36)
+
+[sub_resource type="AtlasTexture" id="walk3"]
+atlas = ExtResource("3")
+region = Rect2(240, 428, 32, 36)
+
+[sub_resource type="SpriteFrames" id="Frames"]
+animations = [{"frames": [{"duration": 1.0, "texture": SubResource("idle0")}, {"duration": 1.0, "texture": SubResource("idle1")}, {"duration": 1.0, "texture": SubResource("idle2")}, {"duration": 1.0, "texture": SubResource("idle3")}], "loop": true, "name": &"idle", "speed": 6.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("walk0")}, {"duration": 1.0, "texture": SubResource("walk1")}, {"duration": 1.0, "texture": SubResource("walk2")}, {"duration": 1.0, "texture": SubResource("walk3")}], "loop": true, "name": &"walk", "speed": 8.0}]
+
+[sub_resource type="CircleShape2D" id="Body"]
+radius = 11.0
+
+[node name="Maw" instance=ExtResource("1")]
+script = ExtResource("2")
+boss = true
+speed = 34.0
+attack_range = 420.0
+max_health = 40
+
+[node name="AnimatedSprite2D" parent="." index="0"]
+position = Vector2(0, -20)
+scale = Vector2(1.25, 1.25)
+sprite_frames = SubResource("Frames")
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(0, -8)
+shape = SubResource("Body")

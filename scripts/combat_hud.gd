@@ -4,34 +4,107 @@ var ui_theme: Theme
 var won := false
 var player: CharacterBody2D
 
+const UI_STYLE := preload("res://scripts/ui/ui_style.gd")
+var run_stats: Node
+var upgrade_bar: HBoxContainer
+var status_bar: VBoxContainer
+var stats_label: Label
+
 func _ready() -> void:
-	ui_theme = Theme.new()
-	var font := preload("res://assets/Fonts/PixelifySans.ttf")
-	font.antialiasing = 0
-	ui_theme.default_font = font
-	ui_theme.default_font_size = 18
-	ui_theme.set_color("font_color", "Label", Color("cfb58a"))
-	ui_theme.set_color("font_shadow_color", "Label", Color("110f12"))
-	ui_theme.set_constant("shadow_offset_x", "Label", 1)
-	ui_theme.set_constant("shadow_offset_y", "Label", 1)
+	ui_theme = UI_STYLE.make_theme()
 	for child in get_children():
 		if child is Control:
 			child.theme = ui_theme
 	$DeathPanel.hide()
 	$DeathPanel/Center/Restart.pressed.connect(_restart)
+	$DeathPanel/Center.offset_top = -150.0
+	$DeathPanel/Center.offset_bottom = 150.0
+	stats_label = Label.new()
+	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_label.add_theme_font_size_override("font_size", 16)
+	stats_label.modulate = Color(1, 1, 1, 0.85)
+	$DeathPanel/Center.add_child(stats_label)
+	$DeathPanel/Center.move_child(stats_label, 1)
+	var quit := Button.new()
+	quit.text = "Quit to title"
+	quit.pressed.connect(func() -> void:
+		UI_STYLE.use_crosshair(false)
+		get_tree().change_scene_to_file("res://scenes/ui/title.tscn"))
+	$DeathPanel/Center.add_child(quit)
 
 func bind_player(value: CharacterBody2D) -> void:
 	player = value
 	player.health_changed.connect(_update_health)
 	player.died.connect(_show_death)
 	_update_health(player.health, player.max_health)
+	UI_STYLE.use_crosshair(true)
+
+## Builds the HUD pieces that need the generated level: map, run tracking, combat feedback,
+## upgrade/status bars, banner and pause menu.
+func _add_components(level: Node2D) -> void:
+	var hit_flash := ColorRect.new()
+	hit_flash.set_script(preload("res://scripts/ui/hit_flash.gd"))
+	add_child(hit_flash)
+	move_child(hit_flash, 0)
+	hit_flash.configure(player, level)
+	run_stats = Node.new()
+	run_stats.set_script(preload("res://scripts/ui/run_stats.gd"))
+	run_stats.name = "RunStats"
+	level.add_child(run_stats)
+	run_stats.configure(level)
+	var numbers := Node2D.new()
+	numbers.set_script(preload("res://scripts/ui/damage_numbers.gd"))
+	level.add_child(numbers)
+	var dodge := Node2D.new()
+	dodge.set_script(preload("res://scripts/ui/dodge_indicator.gd"))
+	dodge.player = player
+	level.add_child(dodge)
+	var minimap := Control.new()
+	minimap.set_script(preload("res://scripts/ui/minimap.gd"))
+	add_child(minimap)
+	minimap.configure(level)
+	upgrade_bar = HBoxContainer.new()
+	upgrade_bar.set_script(preload("res://scripts/ui/upgrade_bar.gd"))
+	upgrade_bar.theme = ui_theme
+	upgrade_bar.player = player
+	upgrade_bar.services = services
+	add_child(upgrade_bar)
+	status_bar = VBoxContainer.new()
+	status_bar.set_script(preload("res://scripts/ui/status_bar.gd"))
+	status_bar.theme = ui_theme
+	add_child(status_bar)
+	var banner := Label.new()
+	banner.set_script(preload("res://scripts/ui/banner.gd"))
+	banner.theme = ui_theme
+	add_child(banner)
+	var pause_menu := Control.new()
+	pause_menu.set_script(preload("res://scripts/ui/pause_menu.gd"))
+	pause_menu.theme = ui_theme
+	pause_menu.hud = self
+	add_child(pause_menu)
+
+## For gameplay code: show an owned upgrade in the bottom-left bar (count > 1 shows "x2" etc).
+func add_upgrade(id: String, icon: Texture2D, description: String, count := 1) -> void:
+	upgrade_bar.add_upgrade(id, icon, description, count)
+
+## For gameplay code: show a curse/buff on the player. seconds < 0 lasts until clear_status().
+func show_status(id: String, label: String, color: Color, seconds := -1.0) -> void:
+	status_bar.show_status(id, label, color, seconds)
+
+func clear_status(id: String) -> void:
+	status_bar.clear_status(id)
+
+func _show_end_panel() -> void:
+	UI_STYLE.use_crosshair(false)
+	stats_label.text = run_stats.summary() if run_stats != null else ""
+	$DeathPanel.show()
+	$DeathPanel/Center/Restart.grab_focus()
 
 func _update_health(current: int, maximum: int) -> void:
 	$Health.set_health(current, maximum)
 
 func _show_death() -> void:
-	$DeathPanel.show()
-	$DeathPanel/Center/Restart.grab_focus()
+	_show_end_panel()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if is_instance_valid(player) and (player.dead or won) and event is InputEventKey:
@@ -97,6 +170,7 @@ func bind_services(value: Node2D) -> void:
 	shop_message.text = "E or Escape · Leave shop"
 	box.add_child(shop_message)
 	shop_panel.hide()
+	_add_components(get_parent())
 	if get_parent().playtest_mode:
 		var notice := Label.new()
 		notice.theme = ui_theme
@@ -123,5 +197,6 @@ func show_victory() -> void:
 	player.menu_open = true
 	$DeathPanel/Center/Title.text = "Catacombs cleared"
 	$DeathPanel/Center/Restart.text = "New run (R)"
-	$DeathPanel.show()
-	$DeathPanel/Center/Restart.grab_focus()
+	if run_stats != null:
+		run_stats.finished = true
+	_show_end_panel()

@@ -1,7 +1,7 @@
 extends Node2D
 
 var boss_room := false
-const BOSS_ENEMY := preload("res://scenes/enemies/bone_warden.tscn")
+const BOSS_ENEMY := preload("res://scenes/enemies/maw.tscn")
 const RANGED_ENEMY := preload("res://scenes/enemies/bone_caster.tscn")
 const ENEMY := preload("res://scenes/enemies/skeleton.tscn")
 const HORIZONTAL_GATE := preload("res://scenes/blockade/horizontal_spikes.tscn")
