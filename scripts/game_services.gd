@@ -10,6 +10,7 @@ var merchant: Sprite2D
 var shop_open := false
 var has_familiar := false
 var clears := 0
+var pit_exposure := 0.0
 @export_range(0.0, 1.0) var room_health_reward_chance := 0.35
 
 func configure(value: Node2D) -> void:
@@ -57,6 +58,8 @@ func safe_position(room: Node2D, point: Vector2) -> Vector2:
 			if layer.get_cell_source_id(cell) != -1:
 				safe = false
 		var candidate := floors.to_global(floors.map_to_local(cell))
+		if room.is_structure_blocked(candidate, 6.0):
+			safe = false
 		if safe and candidate.distance_squared_to(point) < distance:
 			best = candidate
 			distance = candidate.distance_squared_to(point)
@@ -96,7 +99,7 @@ func room_reward(room: Node2D) -> void:
 			coin.reward_room = room
 			coin.collect_automatically(0.08 * bonus)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if player == null or player.dead:
 		if shop_open:
 			close_shop()
@@ -129,9 +132,9 @@ func _physics_process(_delta: float) -> void:
 			shop_open = true
 			player.menu_open = true
 			hud.open_shop()
-	_check_hazards()
+	_check_hazards(delta)
 
-func _check_hazards() -> void:
+func _check_hazards(delta: float = 1.0 / 60.0) -> void:
 	if player.fall_time > 0.0:
 		return
 	var hazard := ""
@@ -140,7 +143,12 @@ func _check_hazards() -> void:
 		var floors := room.get_node("Floors") as TileMapLayer
 		var cell := floors.local_to_map(floors.to_local(player.global_position))
 		if (room.get_node("Pits") as TileMapLayer).get_cell_source_id(cell) != -1:
+			var pits := room.get_node("Pits") as TileMapLayer
 			hazard = "pit"
+			for offset in [Vector2(3, 0), Vector2(-3, 0), Vector2(0, 3), Vector2(0, -3)]:
+				var edge_cell := pits.local_to_map(pits.to_local(player.global_position + offset))
+				if pits.get_cell_source_id(edge_cell) == -1:
+					hazard = "pit_edge"
 		elif (room.get_node("Spikes") as TileMapLayer).get_cell_source_id(cell) != -1:
 			hazard = "spike"
 		elif floors.get_cell_source_id(cell) != -1:
@@ -148,9 +156,14 @@ func _check_hazards() -> void:
 		else:
 			continue
 		break
-	if hazard == "pit" and player.roll_time <= 0.0:
-		player.fall_into_pit()
-	elif hazard == "spike" and player.roll_time <= 0.0:
+	if hazard == "pit" and player.roll_time <= 0.0 and player.pit_landing_grace <= 0.0:
+		pit_exposure += delta
+		if pit_exposure >= 0.12:
+			pit_exposure = 0.0
+			player.fall_into_pit()
+	else:
+		pit_exposure = 0.0
+	if hazard == "spike" and player.roll_time <= 0.0:
 		player.take_damage(1)
 	elif hazard.is_empty() and on_floor:
 		player.last_safe_position = player.global_position

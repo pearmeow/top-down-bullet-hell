@@ -1,20 +1,19 @@
-[gd_scene load_steps=3 format=3 uid="uid://bhxrl05n7p4xu"]
+[gd_scene format=3 uid="uid://bhxrl05n7p4xu"]
 
-[ext_resource type="Script" path="res://scripts/level_generator.gd" id="1_generator"]
-
+[ext_resource type="Script" uid="uid://ccjjqbld03sqd" path="res://scripts/level_generator.gd" id="1_generator"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_hud.tscn" id="combat_hud"]
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" unique_id=59006029]
 texture_filter = 1
 script = ExtResource("1_generator")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=907379192]
 zoom = Vector2(2, 2)
 
-[node name="Rooms" type="Node2D" parent="."]
+[node name="Rooms" type="Node2D" parent="." unique_id=1349191868]
 
-[node name="Connectors" type="Node2D" parent="."]
+[node name="Connectors" type="Node2D" parent="." unique_id=1628434703]
 
-[node name="Blockades" type="Node2D" parent="."]
+[node name="Blockades" type="Node2D" parent="." unique_id=988057980]
 
-[node name="CombatHUD" parent="." instance=ExtResource("combat_hud")]
+[node name="CombatHUD" parent="." unique_id=876105234 instance=ExtResource("combat_hud")]

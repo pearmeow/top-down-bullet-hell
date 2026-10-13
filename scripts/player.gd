@@ -2,10 +2,11 @@ extends CharacterBody2D
 
 @export var move_speed: float = 100.0
 @export var exploration_speed_multiplier: float = 3.0
-@export var roll_speed: float = 210.0
-@export var roll_duration: float = 0.28
+@export var roll_speed: float = 260.0
+@export var roll_duration: float = 0.32
 @export var roll_cooldown: float = 0.55
 @export var shot_interval: float = 0.4
+@export var keyboard_aim_assist_degrees: float = 30.0
 
 signal health_changed(current: int, maximum: int)
 signal died
@@ -15,6 +16,7 @@ var weapon_upgraded := false
 var menu_open := false
 var last_safe_position := Vector2.ZERO
 var fall_time := 0.0
+var pit_landing_grace := 0.0
 @export var max_health: int = 6
 var health: int = 3
 var invulnerability: float = 0.0
@@ -72,6 +74,7 @@ func _physics_process(delta: float) -> void:
 	invulnerability = maxf(0.0, invulnerability - delta)
 	sprite.modulate = Color(1.0, 0.4, 0.4) if invulnerability > 0.85 else Color.WHITE
 	sprite.visible = invulnerability <= 0.0 or int(invulnerability * 12.0) % 2 == 0
+	pit_landing_grace = maxf(0.0, pit_landing_grace - delta)
 	cooldown = maxf(0.0, cooldown - delta)
 	shot_time = maxf(0.0, shot_time - delta)
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -89,7 +92,8 @@ func _physics_process(delta: float) -> void:
 		sprite.play("roll")
 		sprite.speed_scale = 7.0 / (25.0 * roll_duration)
 	if roll_time > 0.0:
-		velocity = roll_direction * roll_speed
+		pit_landing_grace = 0.18
+		velocity = roll_direction * maxf(roll_speed, movement_speed())
 		roll_time = maxf(0.0, roll_time - delta)
 	else:
 		sprite.speed_scale = 1.0
@@ -104,7 +108,7 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_pressed("shoot"):
 		keyboard_aim = false
 	if keyboard_aim:
-		weapon.rotation = last_move_direction.angle()
+		weapon.rotation = keyboard_shot_direction().angle()
 	else:
 		weapon.look_at(get_global_mouse_position())
 	gun.flip_v = cos(weapon.global_rotation) < 0.0
@@ -164,3 +168,27 @@ func movement_speed() -> float:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and event.relative.length_squared() > 0.0:
 		keyboard_aim = false
+
+func keyboard_shot_direction() -> Vector2:
+	var forward := last_move_direction.normalized()
+	var selected := forward
+	var nearest := INF
+	var limit := cos(deg_to_rad(keyboard_aim_assist_degrees))
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(enemy) or enemy.dead or enemy.is_queued_for_deletion():
+			continue
+		var body := enemy.get_node_or_null("CollisionShape2D") as CollisionShape2D
+		var target: Vector2 = body.global_position if body != null else enemy.global_position
+		var offset := target - weapon.global_position
+		var distance := offset.length_squared()
+		if distance < 0.01 or distance >= nearest:
+			continue
+		var direction := offset.normalized()
+		if forward.dot(direction) < limit:
+			continue
+		var query := PhysicsRayQueryParameters2D.create(weapon.global_position, target, 1)
+		if not get_world_2d().direct_space_state.intersect_ray(query).is_empty():
+			continue
+		nearest = distance
+		selected = direction
+	return selected

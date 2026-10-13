@@ -127,6 +127,8 @@ func _spawn_player() -> void:
 			var layer := start_room.get_node_or_null(layer_name) as TileMapLayer
 			if layer != null and layer.get_cell_source_id(cell) != -1:
 				safe = false
+		if start_room.is_structure_blocked(floors.to_global(floors.map_to_local(cell)), 6.0):
+			safe = false
 		if safe:
 			spawn_tile = cell
 			break

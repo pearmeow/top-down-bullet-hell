@@ -47,6 +47,8 @@ func configure(value: Node2D, target: CharacterBody2D, doors: Array, display: Ca
 				var layer := room.get_node_or_null(layer_name) as TileMapLayer
 				if layer != null and layer.get_cell_source_id(cell) != -1:
 					safe = false
+			if room.is_structure_blocked(floors.to_global(floors.map_to_local(cell)), 6.0):
+				safe = false
 			grid.set_point_solid(cell, not safe)
 			if safe:
 				safe_cells.append(cell)
