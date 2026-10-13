@@ -2,8 +2,8 @@ extends CharacterBody2D
 
 @export var move_speed: float = 100.0
 @export var exploration_speed_multiplier: float = 3.0
-@export var roll_speed: float = 260.0
-@export var roll_duration: float = 0.32
+@export var roll_speed: float = 210.0
+@export var roll_duration: float = 0.28
 @export var roll_cooldown: float = 0.55
 @export var shot_interval: float = 0.4
 @export var keyboard_aim_assist_degrees: float = 30.0
@@ -93,7 +93,7 @@ func _physics_process(delta: float) -> void:
 		sprite.speed_scale = 7.0 / (25.0 * roll_duration)
 	if roll_time > 0.0:
 		pit_landing_grace = 0.18
-		velocity = roll_direction * maxf(roll_speed, movement_speed())
+		velocity = roll_direction * roll_speed
 		roll_time = maxf(0.0, roll_time - delta)
 	else:
 		sprite.speed_scale = 1.0

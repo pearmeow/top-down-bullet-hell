@@ -11,6 +11,7 @@ var shop_open := false
 var has_familiar := false
 var clears := 0
 var pit_exposure := 0.0
+const PIT_RESPAWN_BUFFER := 8.0
 @export_range(0.0, 1.0) var room_health_reward_chance := 0.35
 
 func configure(value: Node2D) -> void:
@@ -139,20 +140,23 @@ func _check_hazards(delta: float = 1.0 / 60.0) -> void:
 		return
 	var hazard := ""
 	var on_floor := false
+	var safe_from_pits := false
+	var body_shape := (player.get_node("CollisionShape2D") as CollisionShape2D).shape as CircleShape2D
+	var body_radius := body_shape.radius
 	for room in level.rooms.values():
 		var floors := room.get_node("Floors") as TileMapLayer
+		var pits := room.get_node("Pits") as TileMapLayer
+		var spikes := room.get_node("Spikes") as TileMapLayer
 		var cell := floors.local_to_map(floors.to_local(player.global_position))
-		if (room.get_node("Pits") as TileMapLayer).get_cell_source_id(cell) != -1:
-			var pits := room.get_node("Pits") as TileMapLayer
-			hazard = "pit"
-			for offset in [Vector2(3, 0), Vector2(-3, 0), Vector2(0, 3), Vector2(0, -3)]:
-				var edge_cell := pits.local_to_map(pits.to_local(player.global_position + offset))
-				if pits.get_cell_source_id(edge_cell) == -1:
-					hazard = "pit_edge"
-		elif (room.get_node("Spikes") as TileMapLayer).get_cell_source_id(cell) != -1:
-			hazard = "spike"
+		var pit_cell := pits.local_to_map(pits.to_local(player.global_position))
+		if pits.get_cell_source_id(pit_cell) != -1:
+			hazard = "pit" if _pit_area_matches(pits, player.global_position, body_radius, true) else "pit_edge"
+		elif spikes.get_cell_source_id(cell) != -1:
+			if spikes.get_cell_atlas_coords(cell) == Vector2i(4, 3):
+				hazard = "spike"
 		elif floors.get_cell_source_id(cell) != -1:
 			on_floor = true
+			safe_from_pits = _pit_area_matches(pits, player.global_position, body_radius + PIT_RESPAWN_BUFFER, false)
 		else:
 			continue
 		break
@@ -165,8 +169,27 @@ func _check_hazards(delta: float = 1.0 / 60.0) -> void:
 		pit_exposure = 0.0
 	if hazard == "spike" and player.roll_time <= 0.0:
 		player.take_damage(1)
-	elif hazard.is_empty() and on_floor:
+	elif hazard.is_empty() and on_floor and safe_from_pits:
 		player.last_safe_position = player.global_position
+
+func _pit_area_matches(pits: TileMapLayer, world_position: Vector2, radius: float, expect_pit: bool) -> bool:
+	var local_position := pits.to_local(world_position)
+	var extent := Vector2.ONE * radius
+	var first := pits.local_to_map(local_position - extent)
+	var last := pits.local_to_map(local_position + extent)
+	var half_tile := Vector2(pits.tile_set.tile_size) / 2.0
+	for y in range(first.y, last.y + 1):
+		for x in range(first.x, last.x + 1):
+			var cell := Vector2i(x, y)
+			var center := pits.map_to_local(cell)
+			var nearest := Vector2(
+				clampf(local_position.x, center.x - half_tile.x, center.x + half_tile.x),
+				clampf(local_position.y, center.y - half_tile.y, center.y + half_tile.y)
+			)
+			if local_position.distance_squared_to(nearest) < radius * radius:
+				if (pits.get_cell_source_id(cell) != -1) != expect_pit:
+					return false
+	return true
 
 func close_shop() -> void:
 	shop_open = false

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bx0oaxocvfdgl"]
 
 [ext_resource type="Script" path="res://scripts/room_collision.gd" id="player_collision"]
+[ext_resource type="Script" path="res://scripts/spike_traps.gd" id="spike_traps"]
 
 [ext_resource type="TileSet" uid="uid://4yeremxwe5aj" path="res://assets/tileset/room_tileset.tres" id="1_2lsvk"]
 [ext_resource type="Texture2D" uid="uid://baqs0u5yysgkk" path="res://assets/tileset/mainlevbuild.png" id="2_iahlw"]
@@ -1048,6 +1049,7 @@ tile_set = SubResource("TileSet_vf6dh")
 [node name="Spikes" type="TileMapLayer" parent="." unique_id=301037339]
 z_index = 2
 tile_set = ExtResource("1_2lsvk")
+script = ExtResource("spike_traps")
 
 [node name="Extras" type="TileMapLayer" parent="." unique_id=1224343505]
 tile_set = SubResource("TileSet_vf6dh")
