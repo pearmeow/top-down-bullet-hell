@@ -6,6 +6,7 @@ var level: Node2D
 var player: CharacterBody2D
 var guide: Sprite2D
 var tutorial_open := false
+var tutorial_panel: PanelContainer
 var merchant: Sprite2D
 var shop_open := false
 var has_familiar := false
@@ -46,7 +47,28 @@ func configure(value: Node2D) -> void:
 	_add_npc_collision(merchant)
 	_add_npc_collision(guide)
 	player.last_safe_position = player.global_position
-	level.get_node("CombatHUD").bind_services(self)
+	var hud := level.get_node("CombatHUD") as CanvasLayer
+	hud.bind_services(self)
+	_create_tutorial_panel(hud)
+
+func _create_tutorial_panel(hud: CanvasLayer) -> void:
+	tutorial_panel = PanelContainer.new()
+	tutorial_panel.theme = hud.ui_theme
+	tutorial_panel.position = Vector2(16, 112)
+	var frame := StyleBoxFlat.new()
+	frame.bg_color = Color(0.07, 0.05, 0.08, 0.97)
+	frame.border_color = Color(0.58, 0.47, 0.3)
+	frame.set_border_width_all(2)
+	frame.content_margin_left = 16
+	frame.content_margin_right = 16
+	frame.content_margin_top = 12
+	frame.content_margin_bottom = 12
+	tutorial_panel.add_theme_stylebox_override("panel", frame)
+	hud.add_child(tutorial_panel)
+	var help := Label.new()
+	help.text = "Welcome to the catacombs.\n\nWASD  -  Move\nMouse + left click  -  Aim and shoot\nJ  -  Shoot in your last movement direction\nSpace  -  Roll; dodge attacks and cross pits\nE  -  Talk to NPCs\n\nClear every wave to open the exits.\nGold flies to you when the room clears.\nHearts restore health. Coins buy shop items.\n\nE or Escape  -  Close"
+	tutorial_panel.add_child(help)
+	tutorial_panel.hide()
 
 func safe_position(room: Node2D, point: Vector2) -> Vector2:
 	var floors := room.get_node("Floors") as TileMapLayer
@@ -123,7 +145,7 @@ func _physics_process(delta: float) -> void:
 	elif guide_near and Input.is_action_just_pressed("interact"):
 		tutorial_open = true
 		player.menu_open = true
-		hud.open_tutorial()
+		tutorial_panel.show()
 	elif shop_open and (not near or Input.is_action_just_pressed("cancel_shop")):
 		close_shop()
 	elif near and Input.is_action_just_pressed("interact"):
@@ -228,7 +250,7 @@ func buy(item: String) -> String:
 func close_tutorial() -> void:
 	tutorial_open = false
 	player.menu_open = false
-	level.get_node("CombatHUD").close_tutorial()
+	tutorial_panel.hide()
 
 func _add_npc_collision(npc: Sprite2D) -> void:
 	var body := StaticBody2D.new()

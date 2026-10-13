@@ -3,7 +3,7 @@ extends Node2D
 var boss_room := false
 const SPAWN_MARKER := preload("res://scripts/spawn_marker.gd")
 var spawn_markers: Array[Node2D] = []
-const BOSS_ENEMY := preload("res://scenes/enemies/bone_warden.tscn")
+var boss_scene: PackedScene
 const RANGED_ENEMY := preload("res://scenes/enemies/bone_caster.tscn")
 const ENEMY := preload("res://scenes/enemies/skeleton.tscn")
 const HORIZONTAL_GATE := preload("res://scenes/blockade/horizontal_spikes.tscn")
@@ -132,7 +132,7 @@ func _next_wave() -> void:
 			continue
 		var enemy_scene := RANGED_ENEMY if waves[wave_index] >= 2 and living == waves[wave_index] - 1 else ENEMY
 		if boss_room and wave_index == waves.size() - 1:
-			enemy_scene = BOSS_ENEMY
+			enemy_scene = boss_scene
 		spawns.append({"scene": enemy_scene, "point": point})
 		var marker := Node2D.new()
 		marker.set_script(SPAWN_MARKER)

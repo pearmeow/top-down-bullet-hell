@@ -25,6 +25,10 @@ const START_CELL := Vector2i(3, 2)
 const START_SCENE := preload("res://scenes/rooms/start.tscn")
 const SHOP_SCENE := preload("res://scenes/rooms/shop.tscn")
 const BOSS_SCENE := preload("res://scenes/rooms/boss_room.tscn")
+const BOSS_ENEMIES := [
+	preload("res://scenes/enemies/bone_warden.tscn"),
+	preload("res://scenes/enemies/maw.tscn"),
+]
 const BIG_SCENE := preload("res://scenes/rooms/big_room.tscn")
 const PITS_AND_SPIKES_SCENE := preload("res://scenes/rooms/pits_and_spikes_room.tscn")
 const PITS_SCENE := preload("res://scenes/rooms/pits_room.tscn")
@@ -89,6 +93,14 @@ func _ready() -> void:
 	services.name = "GameServices"
 	add_child(services)
 	services.configure(self)
+	for index in 2:
+		var skip_button := preload("res://scripts/skip_button.gd").new() as Button
+		$CombatHUD.add_child(skip_button)
+		skip_button.configure(self, ["boss", "shop"][index], index)
+	var pointer := preload("res://scripts/shop_pointer.gd").new() as Node2D
+	pointer.player = player
+	pointer.merchant = services.merchant
+	add_child(pointer)
 
 
 func _process(_delta: float) -> void:
@@ -472,4 +484,5 @@ func _setup_encounters() -> void:
 		if cell == boss_cell:
 			counts = [3, 1]
 			encounter.boss_room = true
+			encounter.boss_scene = BOSS_ENEMIES[rng.randi_range(0, BOSS_ENEMIES.size() - 1)]
 		encounter.configure(rooms[cell], player, openings[cell], $CombatHUD, counts)

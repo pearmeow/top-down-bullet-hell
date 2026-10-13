@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="top-down-bullet-hell"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/ui/title.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Settings="*res://scripts/settings.gd"
 
 [display]
 
