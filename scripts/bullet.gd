@@ -14,4 +14,6 @@ func _physics_process(delta: float) -> void:
 		var target := hit.get_collider()
 		if target.has_method("take_damage"):
 			target.take_damage(damage)
+		else:
+			Audio.play("wall_hit")
 		queue_free()

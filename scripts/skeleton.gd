@@ -105,6 +105,7 @@ func take_damage(amount: int) -> void:
 		return
 	health = maxi(0, health - amount)
 	flash = 0.12
+	Audio.play("enemy_hit" if health > 0 else "enemy_die")
 	if health == 0:
 		dead = true
 		var services := get_tree().current_scene.get_node_or_null("GameServices")
@@ -124,6 +125,7 @@ func _throw() -> void:
 			angles = []
 			for index in 12:
 				angles.append(float(index) * 30.0)
+	Audio.play("enemy_shoot")
 	for angle in angles:
 		var projectile := PROJECTILE.instantiate() as CharacterBody2D
 		get_tree().current_scene.add_child(projectile)

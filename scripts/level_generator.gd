@@ -64,6 +64,7 @@ var player: CharacterBody2D
 
 func _ready() -> void:
 	_setup_player_input()
+	Audio.play_music("dungeon")
 	if level_seed == -1:
 		rng.randomize()
 	else:

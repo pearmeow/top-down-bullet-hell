@@ -90,6 +90,7 @@ func _begin_charge() -> void:
 	state_time = 0.9 if phase == 2 else 0.7
 	velocity = Vector2.ZERO
 	charge_direction = global_position.direction_to(player.global_position)
+	Audio.play("boss_charge")
 
 func _tick_charge(delta: float) -> void:
 	flash = maxf(0.0, flash - delta)
@@ -133,6 +134,7 @@ func _slam() -> void:
 	for index in count:
 		_fire(Vector2.RIGHT.rotated(offset + TAU * index / count), SLAM_SPEED)
 	_shake_camera()
+	Audio.play("boss_slam")
 	_recover(0.9)
 
 func _recover(duration: float) -> void:
@@ -170,6 +172,7 @@ func take_damage(amount: int) -> void:
 
 func _enter_phase(value: int) -> void:
 	phase = value
+	Audio.play("boss_phase")
 	if is_instance_valid(bar):
 		bar.current_phase = phase
 	state = "chase"
@@ -234,3 +237,4 @@ func _fire(direction: Vector2, bullet_speed: float) -> void:
 	projectile.velocity = direction * bullet_speed
 	projectile.lifetime = 5.0
 	projectile.modulate = BULLET_TINTS[phase - 1]
+	Audio.play("enemy_shoot")

@@ -45,6 +45,7 @@ func take_damage(amount: int) -> void:
 	health = maxi(0, health - amount)
 	invulnerability = 1.0
 	health_changed.emit(health, max_health)
+	Audio.play("player_hurt" if health > 0 else "player_die")
 	if health == 0:
 		dead = true
 		velocity = Vector2.ZERO
@@ -90,6 +91,7 @@ func _physics_process(delta: float) -> void:
 		roll_time = roll_duration
 		cooldown = roll_duration + roll_cooldown
 		sprite.play("roll")
+		Audio.play("roll")
 		sprite.speed_scale = 7.0 / (25.0 * roll_duration)
 	if roll_time > 0.0:
 		pit_landing_grace = 0.18
@@ -134,6 +136,7 @@ func _shoot() -> void:
 	bullet.rotation = shot_direction.angle()
 	bullet.velocity = shot_direction * bullet.speed
 	bullet.damage = 2 if weapon_upgraded else 1
+	Audio.play("shoot")
 
 func add_coins(amount: int) -> void:
 	coins = maxi(0, coins + amount)
@@ -156,6 +159,7 @@ func fall_into_pit() -> void:
 		return
 	take_damage(1)
 	if not dead:
+		Audio.play("pit_fall")
 		fall_time = 0.35
 		velocity = Vector2.ZERO
 

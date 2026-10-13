@@ -52,11 +52,14 @@ func _physics_process(delta: float) -> void:
 		return
 	if kind == "coin":
 		player.add_coins(amount)
+		Audio.play("coin")
 	elif kind == "health":
 		if not player.heal(amount):
 			return
+		Audio.play("heal")
 	else:
 		player.upgrade_weapon()
+		Audio.play("purchase")
 	queue_free()
 
 func collect_automatically(delay: float = 0.0) -> void:
@@ -87,4 +90,5 @@ func _animate_collection(delta: float) -> void:
 	sprite.scale = Vector2.ONE * lerpf(1.0, 0.65, progress)
 	if flight_time >= 0.65:
 		player.add_coins(amount)
+		Audio.play("coin")
 		queue_free()

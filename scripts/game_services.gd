@@ -146,6 +146,7 @@ func _physics_process(delta: float) -> void:
 		tutorial_open = true
 		player.menu_open = true
 		tutorial_panel.show()
+		Audio.play("book_open")
 	elif shop_open and (not near or Input.is_action_just_pressed("cancel_shop")):
 		close_shop()
 	elif near and Input.is_action_just_pressed("interact"):
@@ -214,6 +215,7 @@ func _pit_area_matches(pits: TileMapLayer, world_position: Vector2, radius: floa
 	return true
 
 func close_shop() -> void:
+	Audio.play("shop_close")
 	shop_open = false
 	player.menu_open = false
 	level.get_node("CombatHUD").close_shop()
@@ -248,6 +250,7 @@ func buy(item: String) -> String:
 	return "A deal well made."
 
 func close_tutorial() -> void:
+	Audio.play("book_close")
 	tutorial_open = false
 	player.menu_open = false
 	tutorial_panel.hide()

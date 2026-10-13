@@ -63,7 +63,11 @@ func _physics_process(_delta: float) -> void:
 
 func _begin() -> void:
 	active = true
+	if boss_room:
+		Audio.play_music("boss")
 	_close_doors()
+	if not exits.is_empty():
+		Audio.play("gate_close")
 	_next_wave()
 
 func _close_doors() -> void:
@@ -144,6 +148,7 @@ func _next_wave() -> void:
 	if living == 0:
 		_queue_wave()
 		return
+	Audio.play("spawn")
 	await get_tree().create_timer(0.5).timeout
 	_clear_spawn_markers()
 	if cleared or not active or not is_instance_valid(player) or player.dead:
@@ -194,6 +199,8 @@ func _finish() -> void:
 	hud.set_encounter_text("Room cleared")
 	if boss_room:
 		hud.show_victory()
+	else:
+		Audio.play("room_clear")
 
 func path_between(from: Vector2, to: Vector2) -> PackedVector2Array:
 	var start := floors.local_to_map(floors.to_local(from))

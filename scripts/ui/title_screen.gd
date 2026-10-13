@@ -15,6 +15,7 @@ var age := 0.0
 
 func _ready() -> void:
 	theme = UI_STYLE.make_theme()
+	Audio.play_music("title")
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	UI_STYLE.use_crosshair(false)
 	for index in 40:

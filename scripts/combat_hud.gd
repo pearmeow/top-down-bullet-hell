@@ -104,6 +104,7 @@ func _update_health(current: int, maximum: int) -> void:
 	$Health.set_health(current, maximum)
 
 func _show_death() -> void:
+	Audio.stop_music(0.6)
 	_show_end_panel()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -180,12 +181,15 @@ func bind_services(value: Node2D) -> void:
 		add_child(notice)
 
 func _buy(item: String) -> void:
+	var coins_before: int = player.coins
 	shop_message.text = services.buy(item)
+	Audio.play("purchase" if player.coins < coins_before else "denied")
 
 func set_interaction(value: String) -> void:
 	interaction_label.text = value
 
 func open_shop() -> void:
+	Audio.play("shop_open")
 	shop_panel.show()
 	shop_message.text = "E or Escape · Leave shop"
 
@@ -194,6 +198,7 @@ func close_shop() -> void:
 
 func show_victory() -> void:
 	won = true
+	Audio.play_music("victory", 0.5)
 	player.menu_open = true
 	$DeathPanel/Center/Title.text = "Catacombs cleared"
 	$DeathPanel/Center/Restart.text = "New run (R)"

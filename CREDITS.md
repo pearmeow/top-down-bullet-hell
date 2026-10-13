@@ -23,3 +23,13 @@ Downloaded atlas mirror: https://github.com/RoboSupreme/Good-pixel-art-sprites/b
 Pixelify Sans font by the Pixelify Sans Project Authors (SIL Open Font License).
 https://github.com/google/fonts/tree/main/ofl/pixelifysans
 License included in `assets/Fonts/OFL.txt`.
+
+## Audio
+
+Sound effects from Kenney's Impact Sounds, Interface Sounds, RPG Audio, Digital Audio and Music Jingles packs (CC0):
+https://kenney.nl/assets
+
+Music: "5 Chiptunes (Action)" by Juhani Junkala (CC0):
+https://opengameart.org/content/5-chiptunes-action
+
+Player gunshot (`assets/Audio/sfx/shot_*.wav`) synthesized for this project.
