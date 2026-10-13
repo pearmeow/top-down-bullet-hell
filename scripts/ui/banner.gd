@@ -7,9 +7,11 @@ var announced_boss := false
 var tween: Tween
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_CENTER)
+	anchor_left = 0.0
+	anchor_right = 1.0
+	anchor_top = 0.5
+	anchor_bottom = 0.5
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	grow_horizontal = Control.GROW_DIRECTION_BOTH
 	grow_vertical = Control.GROW_DIRECTION_BOTH
 	offset_top = -150
 	offset_bottom = -100
